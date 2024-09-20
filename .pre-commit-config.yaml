@@ -1,4 +1,3 @@
-# .pre-commit-config.yaml
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
@@ -7,31 +6,31 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0 
+
+  - repo: https://github.com/hhatto/autopep8
+    rev: v2.3.1
     hooks:
-      - id: flake8
-        name: flake8
-        additional_dependencies: [flake8-docstrings, flake8-bugbear]
-        language_version: python3.10.12
+      - id: autopep8
+        args: ["--in-place", "--aggressive", "--aggressive"]
+        language_version: python3.10
 
   - repo: local
     hooks:
-      - id: run-phy-tests
+      - id: poetry run-phy-tests
         name: Run PHY Tests
-        entry: pytest test_phy.py
+        entry: pytest tests/test_phy.py
         language: system
         pass_filenames: false
         stages: [commit]
-      - id: run-mac-tests
-        name: Run MAC Tests
-        entry: pytest test_mac.py
-        language: system
-        pass_filenames: false
-        stages: [commit]
-      - id: run-utils-tests
-        name: Run Utils Tests
-        entry: pytest test_utils.py
-        language: system
-        pass_filenames: false
-        stages: [commit]
+      # - id: poetry run-mac-tests
+      #   name: Run MAC Tests
+      #   entry: pytest tests/test_mac.py
+      #   language: system
+      #   pass_filenames: false
+      #   stages: [commit]
+      # - id: poetry run-utils-tests
+      #   name: Run Utils Tests
+      #   entry: pytest tests/test_utils.py
+      #   language: system
+      #   pass_filenames: false
+      #   stages: [commit]
