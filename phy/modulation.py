@@ -179,7 +179,7 @@ def ofdm_symbol(
     for k in range(N_SD):
         M_k = subcarrier_mapping(k)
         data_sum += d_k_n[k] * \
-            np.exp(1j * 2 * np.pi * M_k[k] * delta_f * (t - T_GI))
+            np.exp(1j * 2 * np.pi * M_k * delta_f * (t - T_GI))
 
     pilot_sum = 0
     for k in range(-N_ST // 2, N_ST // 2):
@@ -261,4 +261,4 @@ def w_tsym(t: float, T_GI: float, T_FFT: float) -> float:
         w_tsym = 1
     else:
         w_tsym = (np.sin((np.pi / 2) * (0.5 - (t - T) / T_tr))) ** 2
-    return w_tsym
+    return float(w_tsym)
