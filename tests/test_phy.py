@@ -2,7 +2,10 @@ import unittest
 import numpy as np
 from phy.modulation import (
     bpsk, qpsk, qam16, qam64, ofdm_symbol,
-    subcarrier_mapping, calculate_subcarrier_frequency_spacing, w_tsym
+    subcarrier_mapping, calculate_subcarrier_frequency_spacing, w_tsym,
+)
+from phy.scrambler import (
+    scrambler, descrambler
 )
 
 
@@ -133,6 +136,55 @@ class TestOFDM(unittest.TestCase):
         result = w_tsym(t, T_GI, T_FFT)
         self.assertIsInstance(result, float)
         self.assertTrue(0 <= result <= 1)
+
+    def test_scrambler_deterministic(self):
+        """Test if scrambler is deterministic (same input produces same output)."""
+        data_bits = [1, 0, 1, 1, 0, 0, 1, 0]
+        seed = 93
+        scrambled_once = scrambler(seed, data_bits)
+        scrambled_twice = scrambler(seed, data_bits)
+        self.assertEqual(
+            scrambled_once,
+            scrambled_twice,
+            "Scrambler should produce the same output for the same input.")
+
+    def test_descrambler_reverses_scrambling(self):
+        """Test if descrambler correctly reverses the scrambling process."""
+        data_bits = [1, 0, 1, 1, 0, 0, 1, 0]
+        seed = 93
+        scrambled = scrambler(seed, data_bits)
+        descrambled = descrambler(seed, scrambled)
+        self.assertEqual(
+            descrambled,
+            data_bits,
+            "Descrambler should return the original data after scrambling.")
+
+    def test_scrambler_with_different_seeds(self):
+        """Test that scrambler with different seeds produces different results."""
+        data_bits = [1, 0, 1, 1, 0, 0, 1, 0]
+        seed1 = 93
+        seed2 = 65
+        scrambled_seed1 = scrambler(seed1, data_bits)
+        scrambled_seed2 = scrambler(seed2, data_bits)
+        self.assertNotEqual(
+            scrambled_seed1,
+            scrambled_seed2,
+            "Scrambler with different seeds should produce different results.")
+
+    def test_empty_data_bits(self):
+        """Test that the scrambler and descrambler can handle an empty list of data bits."""
+        data_bits = []
+        seed = 93
+        scrambled = scrambler(seed, data_bits)
+        descrambled = descrambler(seed, scrambled)
+        self.assertEqual(
+            scrambled,
+            [],
+            "Scrambling an empty list should return an empty list.")
+        self.assertEqual(
+            descrambled,
+            [],
+            "Descrambling an empty list should return an empty list.")
 
 
 if __name__ == "__main__":
