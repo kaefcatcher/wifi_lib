@@ -7,6 +7,9 @@ from phy.modulation import (
 from phy.scrambler import (
     scrambler, descrambler
 )
+from phy.demapper import (
+    approximate_soft_decision_llr, approximate_llr, soft_decision_llr, calculate_llr, hard_decision
+)
 
 
 class TestModulation(unittest.TestCase):
@@ -185,6 +188,73 @@ class TestOFDM(unittest.TestCase):
             descrambled,
             [],
             "Descrambling an empty list should return an empty list.")
+
+    def setUp(self):
+        self.constellation_0 = [1 + 1j, 1 - 1j]
+        self.constellation_1 = [-1 + 1j, -1 - 1j]
+        self.symbols = [1 + 0.5j, -1 - 0.5j, 0 + 0j]
+        self.sigma = 1.0
+
+    def test_hard_decision(self):
+        # Indices of closest points in combined constellation
+        expected = [0, 3, 0]
+        combined_constellation = self.constellation_0 + self.constellation_1
+        result = hard_decision(self.symbols, combined_constellation)
+        self.assertEqual(result, expected)
+
+    def test_calculate_llr(self):
+        symbol = 1 + 0.5j
+
+        # Calculate p_b0 and p_b1 based on the constellations
+        p_b0 = sum(np.exp(-np.abs(symbol - d0) ** 2 / (2 * self.sigma ** 2))
+                   for d0 in self.constellation_0)
+        p_b1 = sum(np.exp(-np.abs(symbol - d1) ** 2 / (2 * self.sigma ** 2))
+                   for d1 in self.constellation_1)
+
+        # Calculate the expected LLR
+        expected_llr = np.log(p_b0 / p_b1)
+
+        result = calculate_llr(
+            symbol,
+            self.constellation_0,
+            self.constellation_1,
+            self.sigma)
+        self.assertAlmostEqual(result, expected_llr, places=5)
+
+    def test_soft_decision_llr(self):
+        expected_llrs = [calculate_llr(symbol, self.constellation_0, self.constellation_1, self.sigma)
+                         for symbol in self.symbols]
+        result = soft_decision_llr(
+            self.symbols,
+            self.constellation_0,
+            self.constellation_1,
+            self.sigma)
+        self.assertEqual(len(result), len(self.symbols))
+        for r, expected in zip(result, expected_llrs):
+            self.assertAlmostEqual(r, expected, places=5)
+
+    def test_approximate_llr(self):
+        symbol = 1 + 0.5j
+        expected_llr = (-1 / (2 * self.sigma**2)) * (min([(abs(symbol - p))**2 for p in self.constellation_0]) -
+                                                     min([(abs(symbol - p))**2 for p in self.constellation_1]))
+        result = approximate_llr(
+            symbol,
+            self.constellation_0,
+            self.constellation_1,
+            self.sigma)
+        self.assertAlmostEqual(result, expected_llr, places=5)
+
+    def test_approximate_soft_decision_llr(self):
+        expected_llrs = [approximate_llr(symbol, self.constellation_0, self.constellation_1, self.sigma)
+                         for symbol in self.symbols]
+        result = approximate_soft_decision_llr(
+            self.symbols,
+            self.constellation_0,
+            self.constellation_1,
+            self.sigma)
+        self.assertEqual(len(result), len(self.symbols))
+        for r, expected in zip(result, expected_llrs):
+            self.assertAlmostEqual(r, expected, places=5)
 
 
 if __name__ == "__main__":
