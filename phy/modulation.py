@@ -131,7 +131,7 @@ def plot_constellation(symbols: List[complex], title: str) -> None:
 
 
 def ofdm_symbol(
-    d_k_n: List[int],
+    c_d_k_n: List[complex],
     p_k: List[int],
     Channel_BW: int,
     t: float,
@@ -143,7 +143,7 @@ def ofdm_symbol(
     Compute the OFDM symbol based on the 17-22 formula from 802.11.2020 specification.
 
     Parameters:
-    - d_k_n (List[int]): Data symbols on each subcarrier (array of length N_SD).
+    - c_d_k_n (List[complex]): Data symbols on each subcarrier (array of length N_SD).
     - p_k (List[int]): Pilot symbols on each subcarrier (array of length N_ST).
     - Channel_BW (int): Channel bandwidth in MHz.
     - t (float): Time at which the symbol is evaluated.
@@ -169,7 +169,9 @@ def ofdm_symbol(
 
     N_SD = 48
     N_ST = 52
-
+    d_k_n = []
+    for i in range(48):
+        d_k_n[i] = np.fft.ifft(c_d_k_n[i])
     delta_f = calculate_subcarrier_frequency_spacing(Channel_BW)
     # - T_FFT (float): Fast Fourier Transform period. Table 17.5 from 802.11.2020 specification.
     T_FFT = 1 / delta_f
