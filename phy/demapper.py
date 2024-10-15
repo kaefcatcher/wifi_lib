@@ -3,21 +3,29 @@ import numpy as np
 
 
 def hard_decision(symbols: List[complex],
-                  constellation: List[complex]) -> List[int]:
+                  constellation: List[complex],
+                  bits_per_symbol: int) -> List[int]:
     """
     Hard decision demapping: find the closest constellation point for each symbol.
 
     Parameters:
     - symbols (List[complex]): The list of received complex symbols.
     - constellation (List[complex]): The list of constellation points.
+    - bits_per_symbol (int): Number of bits represented by each symbol.
 
     Returns:
-    - List[int]: The list of demapped bits (or symbol indices) based on the closest point.
+    - List[int]: The list of demapped bits based on the closest point.
     """
-    demapped_bits = []
+    demapped_indices = []
     for symbol in symbols:
         distances = [abs(symbol - point) for point in constellation]
-        demapped_bits.append(np.argmin(distances))
+        demapped_indices.append(np.argmin(distances))
+
+    demapped_bits = []
+    for index in demapped_indices:
+        bits = [(index >> j) & 1 for j in reversed(range(bits_per_symbol))]
+        demapped_bits.extend(bits)
+
     return demapped_bits
 
 

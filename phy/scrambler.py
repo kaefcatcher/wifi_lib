@@ -12,7 +12,7 @@ def scrambler(seed: int, data_bits: List[int]) -> List[int]:
     Returns:
     - List[int]: The scrambled data bits (list of 0s and 1s).
     """
-    assert (seed > 0 and seed < 127), "Seed must be a 7-bit integer (0-127)."
+    assert (seed >= 0 and seed <= 127), "Seed must be a 7-bit integer (0-127)."
 
     lfsr = [(seed >> i) & 1 for i in range(6, -1, -1)]
 
@@ -39,7 +39,7 @@ def descrambler(seed: int, scrambled_bits: List[int]) -> List[int]:
     - List[int]: The descrambled data bits (list of 0s and 1s).
     """
 
-    assert (seed > 0 and seed < 127), "Seed must be a 7-bit integer (0-127)."
+    assert (seed >= 0 and seed <= 127), "Seed must be a 7-bit integer (0-127)."
 
     lfsr = [(seed >> i) & 1 for i in range(6, -1, -1)]
 

@@ -1,14 +1,22 @@
 import unittest
 import numpy as np
-from phy.modulation import (
-    bpsk, qpsk, qam16, qam64, ofdm_symbol,
-    subcarrier_mapping, calculate_subcarrier_frequency_spacing, w_tsym,
+from wifi_lib.phy.modulation import (
+    bpsk, qpsk, qam16, qam64, ofdm_modulate, ofdm_demodulate,
+    subcarrier_mapping, calculate_subcarrier_frequency_spacing, w_tsym, pad_data
 )
-from phy.scrambler import (
+from wifi_lib.phy.scrambler import (
     scrambler, descrambler
 )
-from phy.demapper import (
+from wifi_lib.phy.demapper import (
     approximate_soft_decision_llr, approximate_llr, soft_decision_llr, calculate_llr, hard_decision
+)
+
+from wifi_lib.phy.bcc import (
+    bcc_encoder, bcc_decoder
+)
+
+from wifi_lib.phy.interleaver import (
+    interleaver, deinterleaver
 )
 
 
@@ -255,6 +263,62 @@ class TestModulation(unittest.TestCase):
         self.assertEqual(len(result), len(self.symbols))
         for r, expected in zip(result, expected_llrs):
             self.assertAlmostEqual(r, expected, places=5)
+
+    def test_interleaver_and_deinterleaver(self):
+        data = [1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0]
+        N_bpscs = 2  # Example: QPSK (2 bits per subcarrier)
+        i_ss = 1     # Single stream
+
+        interleaved_data = interleaver(N_bpscs, i_ss, data)
+        deinterleaved_data = deinterleaver(N_bpscs, i_ss, interleaved_data)
+
+        self.assertEqual(deinterleaved_data, data,
+                         "Deinterleaver output does not match original data")
+
+    def test_bcc_encoder_decoder(self):
+        # Define test data
+        data_bits = [1, 0, 1, 1, 0, 0, 1, 0]
+
+        # Encode data
+        encoded_bits = bcc_encoder(data_bits)
+
+        # Decode encoded data
+        decoded_bits = bcc_decoder(
+            encoded_bits, original_data_len=len(data_bits))
+
+        # Check if decoded data matches original data
+        self.assertEqual(decoded_bits, data_bits,
+                         "Decoded bits do not match original data bits")
+
+    def test_bcc_encoder_decoder_with_all_zeros(self):
+        # Define all zeros data
+        data_bits = [0] * 8
+
+        # Encode data
+        encoded_bits = bcc_encoder(data_bits)
+
+        # Decode encoded data
+        decoded_bits = bcc_decoder(
+            encoded_bits, original_data_len=len(data_bits))
+
+        # Check if decoded data matches original data
+        self.assertEqual(decoded_bits, data_bits,
+                         "Decoded bits do not match all-zero original data")
+
+    def test_bcc_encoder_decoder_with_all_ones(self):
+        # Define all ones data
+        data_bits = [1] * 8
+
+        # Encode data
+        encoded_bits = bcc_encoder(data_bits)
+
+        # Decode encoded data
+        decoded_bits = bcc_decoder(
+            encoded_bits, original_data_len=len(data_bits))
+
+        # Check if decoded data matches original data
+        self.assertEqual(decoded_bits, data_bits,
+                         "Decoded bits do not match all-one original data")
 
 
 if __name__ == "__main__":

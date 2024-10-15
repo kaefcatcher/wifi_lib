@@ -1,23 +1,32 @@
-from typing import List, Callable
+from typing import List
+from typing import List, Callable, Union
 import numpy as np
 import plotly.express as px
 import pandas as pd
+
+
+from utils.constellation_maps import (
+    BPSK_CONSTELLATION,
+    QPSK_CONSTELLATION,
+    QAM16_CONSTELLATION,
+    QAM64_CONSTELLATION
+)
 
 
 def bpsk(bits: List[int], constellation: bool = True) -> List[complex]:
     """
     Perform BPSK (Binary Phase Shift Keying) modulation on input bits.
 
-    Args:
-    - bits (List[int]): A list of binary values (0 or 1).
-    - constellation (bool) optional: Bool parametr for constellation plot.
+    Parameters:
+    - bits (List[int]): original bits to map.
+    - constellation (bool): constellation map visualisation on a plot (True by default).
+
     Returns:
-    - List[complex]: A list of complex BPSK-modulated symbols according to the map
+    - symbols (List[complex]): mapped bits.
     """
-    bpsk_map = [-1, 1]
     symbols: List[complex] = []
     for bit in bits:
-        symbols.append(bpsk_map[bit] + 0j)
+        symbols.append(BPSK_CONSTELLATION[bit])
     if constellation:
         plot_constellation(symbols, "BPSK Constellation")
     return symbols
@@ -26,21 +35,19 @@ def bpsk(bits: List[int], constellation: bool = True) -> List[complex]:
 def qpsk(bits: List[int], constellation: bool = True) -> List[complex]:
     """
     Perform QPSK (Quadrature Phase Shift Keying) modulation on input bits.
-    Each pair of bits is mapped to a complex symbol.
-    Args:
-    - bits (List[int]): A list of binary values (0 or 1). The length of bits must be even, as two bits are needed for each QPSK symbol.
-    - constellation (bool) optional: Bool parametr for constellation plot.
+
+    Parameters:
+    - bits (List[int]): original bits to map.
+    - constellation (bool): constellation map visualisation on a plot (True by default).
+
     Returns:
-    - List[complex]: A list of complex QPSK-modulated symbols, scaled by 1/sqrt(2) according to the map:
+    - symbols (List[complex]): mapped bits.
     """
-    qpsk_map = {(0, 0): (-1, -1), (0, 1): (-1, 1),
-                (1, 0): (1, -1), (1, 1): (1, 1)}
     assert len(bits) % 2 == 0, "Number of bits must be even for QPSK."
     symbols: List[complex] = []
     for i in range(0, len(bits), 2):
-        bit_pair = (bits[i], bits[i + 1])
-        i_val, q_val = qpsk_map[bit_pair]
-        symbols.append((1 / np.sqrt(2)) * (i_val + q_val * 1j))
+        index = bits[i] * 2 + bits[i + 1]
+        symbols.append(QPSK_CONSTELLATION[index])
     if constellation:
         plot_constellation(symbols, "QPSK Constellation")
     return symbols
@@ -49,57 +56,52 @@ def qpsk(bits: List[int], constellation: bool = True) -> List[complex]:
 def qam16(bits: List[int], constellation: bool = True) -> List[complex]:
     """
     Perform 16-QAM (Quadrature Amplitude Modulation) on input bits.
-    Each group of 4 bits is mapped to a complex symbol.
-    Args:
-    - bits (List[int]): A list of binary values (0 or 1). The length of bits must be divisible by 4, as 4 bits are needed for each 16-QAM symbol.
-    - constellation (bool) optional: Bool parametr for constellation plot.
+
+    Parameters:
+    - bits (List[int]): original bits to map.
+    - constellation (bool): constellation map visualization on a plot (True by default).
+
     Returns:
-    - List[complex]: A list of complex 16-QAM-modulated symbols, scaled by 1/sqrt(10):
-      The I (real) and Q (imaginary) values are chosen from {-3, -1, 1, 3} according to the map.
+    - symbols (List[complex]): mapped bits.
     """
-    qam16_map = {(0, 0): -3, (0, 1): -1, (1, 1): 1, (1, 0): 3}
     assert len(bits) % 4 == 0, "Number of bits must be divisible by 4 for 16-QAM."
     symbols: List[complex] = []
+
     for i in range(0, len(bits), 4):
-        bit_pair_re = (bits[i], bits[i + 1])
-        bit_pair_im = (bits[i + 2], bits[i + 3])
-        i_val, q_val = qam16_map[bit_pair_re], qam16_map[bit_pair_im]
-        symbols.append((1 / np.sqrt(10)) * (i_val + q_val * 1j))
+        # Convert the 4 bits into a single index for the constellation
+        index = (bits[i] << 3) | (bits[i + 1] <<
+                                  2) | (bits[i + 2] << 1) | bits[i + 3]
+        symbols.append(QAM16_CONSTELLATION[index])
+
     if constellation:
         plot_constellation(symbols, "16-QAM Constellation")
+
     return symbols
 
 
 def qam64(bits: List[int], constellation: bool = True) -> List[complex]:
     """
     Perform 64-QAM (Quadrature Amplitude Modulation) on input bits.
-    Each group of 6 bits is mapped to a complex symbol.
-    Args:
-    - bits (List[int]): A list of binary values (0 or 1). The length of bits must be divisible by 6, as 6 bits are needed for each 64-QAM symbol.
-    - constellation (bool) optional: Bool parametr for constellation plot.
+
+    Parameters:
+    - bits (List[int]): original bits to map.
+    - constellation (bool): constellation map visualization on a plot (True by default).
+
     Returns:
-    - List[complex]: A list of complex 64-QAM-modulated symbols, scaled by 1/sqrt(42):
-      The I (real) and Q (imaginary) values are chosen from {-7, -5, -3, -1, 1, 3, 5, 7} according to the map.
+    - symbols (List[complex]): mapped bits.
     """
-    qam64_map = {
-        (0, 0, 0): -7,
-        (0, 0, 1): -5,
-        (0, 1, 1): -3,
-        (0, 1, 0): -1,
-        (1, 1, 0): 1,
-        (1, 1, 1): 3,
-        (1, 0, 1): 5,
-        (1, 0, 0): 7,
-    }
     assert len(bits) % 6 == 0, "Number of bits must be divisible by 6 for 64-QAM."
     symbols: List[complex] = []
+
     for i in range(0, len(bits), 6):
-        bit_triplet_re = (bits[i], bits[i + 1], bits[i + 2])
-        bit_triplet_im = (bits[i + 3], bits[i + 4], bits[i + 5])
-        i_val, q_val = qam64_map[bit_triplet_re], qam64_map[bit_triplet_im]
-        symbols.append((1 / np.sqrt(42)) * (i_val + q_val * 1j))
+        # Convert the 6 bits into a single index for the constellation
+        index = (bits[i] << 5) | (bits[i + 1] << 4) | (bits[i + 2] <<
+                                                       3) | (bits[i + 3] << 2) | (bits[i + 4] << 1) | bits[i + 5]
+        symbols.append(QAM64_CONSTELLATION[index])
+
     if constellation:
         plot_constellation(symbols, "64-QAM Constellation")
+
     return symbols
 
 
@@ -107,9 +109,12 @@ def plot_constellation(symbols: List[complex], title: str) -> None:
     """
     Plot the constellation diagram for the modulated symbols.
 
-    Args:
+    Parameters:
     - symbols (List[comple]): A list of complex numbers representing modulated symbols.
     - title (str): Title of the plot.
+
+    Returns:
+    - None
     """
     df = pd.DataFrame(
         {
@@ -130,68 +135,47 @@ def plot_constellation(symbols: List[complex], title: str) -> None:
     fig.show()
 
 
-def ofdm_symbol(
-    c_d_k_n: List[complex],
-    p_k: List[int],
-    Channel_BW: int,
-    t: float,
-    subcarrier_mapping: Callable,
-    calculate_subcarrier_frequency_spacing: Callable,
-    w_tsym: Callable,
-) -> complex:
-    """
-    Compute the OFDM symbol based on the 17-22 formula from 802.11.2020 specification.
+def OFDMmodulation(data: List[complex], num_subcarriers: int = 64) -> List[List[complex]]:
+    pilot_positions = [-21, -7, 7, 21]
+    zero_position = 0
 
-    Parameters:
-    - c_d_k_n (List[complex]): Data symbols on each subcarrier (array of length N_SD).
-    - p_k (List[int]): Pilot symbols on each subcarrier (array of length N_ST).
-    - Channel_BW (int): Channel bandwidth in MHz.
-    - t (float): Time at which the symbol is evaluated.
-    - w_tsym (Callable): Window function applied to the OFDM symbol.
+    data_positions = [i for i in range(-num_subcarriers//2 + 1, num_subcarriers//2)
+                      if i not in pilot_positions and i != zero_position]
+    ofdm_frames = []
 
-    Returns:
-    - r_data_n_t: The OFDM symbol at time t.
-    """
-    assert (
-        len(d_k_n) == 48
-    ), "The number of data subcarriers should be 48, according to Table 17-5 from 802.11.2020 specification."
-    assert (
-        len(p_k) == 52
-    ), "The total number of subcarriers (pilot+data) should be 52, according to Table 17-5 from 802.11.2020 specification."
-    assert (
-        Channel_BW == 20 or Channel_BW == 10 or Channel_BW == 5
-    ), "Invalid channel spacing value"
+    padded_data = np.pad(data, (0, len(data_positions) -
+                         len(data) % len(data_positions)), 'constant')
 
-    """
-    - N_SD (int): Number of data subcarriers.
-    - N_ST (int): Total number of subcarriers (data + pilots).
-    """
+    for start_idx in range(0, len(padded_data), len(data_positions)):
+        ofdm_frame = [0] * num_subcarriers
+        sub_frame_data = padded_data[start_idx:start_idx + len(data_positions)]
 
-    N_SD = 48
-    N_ST = 52
-    d_k_n = []
-    for i in range(48):
-        d_k_n[i] = np.fft.ifft(c_d_k_n[i])
-    delta_f = calculate_subcarrier_frequency_spacing(Channel_BW)
-    # - T_FFT (float): Fast Fourier Transform period. Table 17.5 from 802.11.2020 specification.
-    T_FFT = 1 / delta_f
-    # - T_GI (float): Guard interval duration. Table 17.5 from 802.11.2020 specification.
-    T_GI = 1 / (4 * T_FFT)
-    data_sum = 0
-    for k in range(N_SD):
-        M_k = subcarrier_mapping(k)
-        data_sum += d_k_n[k] * \
-            np.exp(1j * 2 * np.pi * M_k * delta_f * (t - T_GI))
+        for idx, pos in enumerate(data_positions):
+            ofdm_frame[pos + num_subcarriers//2] = sub_frame_data[idx]
 
-    pilot_sum = 0
-    for k in range(-N_ST // 2, N_ST // 2):
-        pilot_sum += p_k[k + N_ST // 2] * np.exp(
-            1j * 2 * np.pi * k * delta_f * (t - T_GI)
-        )
+        pilot_value = 1.0 + 0j
+        for pos in pilot_positions:
+            ofdm_frame[pos + num_subcarriers//2] = pilot_value
 
-    r_data_n_t = w_tsym(t) * (data_sum + pilot_sum)
+        ofdm_frames.append(ofdm_frame)
 
-    return r_data_n_t
+    return ofdm_frames
+
+
+def OFDMdemodulation(ofdm_frames: List[List[complex]], num_subcarriers: int = 64) -> List[complex]:
+    data = []
+    pilot_positions = [-21, -7, 7, 21]
+    zero_position = 0
+
+    data_positions = [i for i in range(-num_subcarriers//2 + 1, num_subcarriers//2)
+                      if i not in pilot_positions and i != zero_position]
+
+    for ofdm_frame in ofdm_frames:
+        frame_data = [ofdm_frame[pos + num_subcarriers//2]
+                      for pos in data_positions]
+        data.extend(frame_data)
+
+    return data
 
 
 def subcarrier_mapping(k: int) -> int:

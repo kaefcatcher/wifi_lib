@@ -10,6 +10,8 @@ numpy = "^1.21"
 plotly = "^5.3"
 pandas = "^1.3"
 autopep8 = "^2.3.1"
+pdoc = "^15.0.0"
+viterbi = "^0.0.4"
 
 
 [tool.poetry.dev-dependencies]
