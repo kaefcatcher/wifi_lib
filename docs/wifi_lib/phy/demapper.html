@@ -37,9 +37,6 @@
                     <a class="function" href="#calculate_llr">calculate_llr</a>
             </li>
             <li>
-                    <a class="function" href="#soft_decision_llr">soft_decision_llr</a>
-            </li>
-            <li>
                     <a class="function" href="#approximate_llr">approximate_llr</a>
             </li>
             <li>
@@ -66,119 +63,102 @@
 
                         <label class="view-source-button" for="mod-demapper-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="k">def</span> <span class="nf">hard_decision</span><span class="p">(</span><span class="n">symbols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>                  <span class="n">constellation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>                  <span class="n">bits_per_symbol</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="sd">    Hard decision demapping: find the closest constellation point for each symbol.</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="sd">    Parameters:</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="sd">    - symbols (List[complex]): The list of received complex symbols.</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">    - constellation (List[complex]): The list of constellation points.</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="sd">    - bits_per_symbol (int): Number of bits represented by each symbol.</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">    Returns:</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    - List[int]: The list of demapped bits based on the closest point.</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="n">demapped_indices</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>    <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">:</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>        <span class="n">distances</span> <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">)</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation</span><span class="p">]</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>        <span class="n">demapped_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">distances</span><span class="p">))</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    <span class="n">demapped_bits</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">demapped_indices</span><span class="p">:</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>        <span class="n">bits</span> <span class="o">=</span> <span class="p">[(</span><span class="n">index</span> <span class="o">&gt;&gt;</span> <span class="n">j</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">bits_per_symbol</span><span class="p">))]</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>        <span class="n">demapped_bits</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bits</span><span class="p">)</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>    <span class="k">return</span> <span class="n">demapped_bits</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="k">def</span> <span class="nf">calculate_llr</span><span class="p">(</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>        <span class="n">symbol</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">    Calculate the Log-Likelihood Ratio (LLR) for a single bit based on the given received symbol.</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    Parameters:</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">    - symbol (complex): The received complex symbol.</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">    Returns:</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">    - float: The calculated LLR value for the bit.</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>    <span class="k">def</span> <span class="nf">gaussian_probability</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">d</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>    <span class="n">p_b0</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gaussian_probability</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">d0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>               <span class="k">for</span> <span class="n">d0</span> <span class="ow">in</span> <span class="n">constellation_0</span><span class="p">)</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>    <span class="n">p_b1</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gaussian_probability</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">d1</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>               <span class="k">for</span> <span class="n">d1</span> <span class="ow">in</span> <span class="n">constellation_1</span><span class="p">)</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>    <span class="n">llr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p_b0</span> <span class="o">/</span> <span class="n">p_b1</span><span class="p">)</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>    <span class="k">return</span> <span class="n">llr</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="k">def</span> <span class="nf">soft_decision_llr</span><span class="p">(</span><span class="n">symbols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>                      <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">    Perform soft decision demapping using LLR for a list of received symbols.</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">    Parameters:</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">    - symbols (List[complex]): The list of received complex symbols.</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">    Returns:</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">    - List[float]: A list of LLR values for each received symbol.</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">calculate_llr</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">,</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>                          <span class="n">constellation_1</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">]</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="k">def</span> <span class="nf">approximate_llr</span><span class="p">(</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>        <span class="n">symbol</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">    Approximate the Log-Likelihood Ratio (LLR) for a single bit based on the given received symbol.</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    Parameters:</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">    - symbol (complex): The received complex symbol.</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">    Returns:</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">    - float: The calculated LLR value for the bit.</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="n">d0</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation_0</span><span class="p">]</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="n">d1</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation_1</span><span class="p">]</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="n">llr</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">d0</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">d1</span><span class="p">))</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="k">return</span> <span class="n">llr</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="k">def</span> <span class="nf">approximate_soft_decision_llr</span><span class="p">(</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="n">symbols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">    Perform soft decision demapping using LLR for a list of received symbols.</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="sd">    Parameters:</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">    - symbols (List[complex]): The list of received complex symbols.</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="sd">    Returns:</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">    - List[float]: A list of LLR values for each received symbol.</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">approximate_llr</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">,</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>                            <span class="n">constellation_1</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">]</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="k">def</span> <span class="nf">hard_decision</span><span class="p">(</span><span class="n">symbols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>                  <span class="n">constellation</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>                  <span class="n">bits_per_symbol</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">    Hard decision demapping: find the closest constellation point for each symbol.</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="sd">    Parameters:</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="sd">    - symbols (List[complex]): The list of received complex symbols.</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="sd">    - constellation (List[complex]): The list of constellation points.</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">    - bits_per_symbol (int): Number of bits represented by each symbol.</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">    Returns:</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="sd">    - List[int]: The list of demapped bits based on the closest point.</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="n">demapped_indices</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">:</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="n">distances</span> <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">)</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation</span><span class="p">]</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        <span class="n">demapped_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">distances</span><span class="p">))</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="n">demapped_bits</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">demapped_indices</span><span class="p">:</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="n">bits</span> <span class="o">=</span> <span class="p">[(</span><span class="n">index</span> <span class="o">&gt;&gt;</span> <span class="n">j</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">bits_per_symbol</span><span class="p">))]</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="n">demapped_bits</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bits</span><span class="p">)</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>    <span class="k">return</span> <span class="n">demapped_bits</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a><span class="k">def</span> <span class="nf">calculate_llr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">constellation</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span> <span class="n">modulation_order</span><span class="p">):</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a><span class="sd">    Calculate LLR for a given received symbol based on constellation and modulation order.</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="sd">    :param s: Received symbol (complex number).</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="sd">    :param constellation: List of constellation points (complex numbers).</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="sd">    :param noise_variance: Noise variance (sigma^2).</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="sd">    :param modulation_order: Number of bits per symbol for the modulation scheme (e.g., 1 for BPSK, 2 for QPSK, 4 for QAM-16).</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">    :return: LLR value for each bit.</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>    <span class="n">llr_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">modulation_order</span><span class="p">)</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">modulation_order</span><span class="p">):</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>        <span class="c1"># Symbols for bit 0 and bit 1</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>        <span class="n">d_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">constellation</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">modulation_order</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">modulation_order</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">)))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>        <span class="n">d_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">constellation</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">modulation_order</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">modulation_order</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">)))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">])</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="n">numerator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">noise_variance</span><span class="p">))</span> <span class="o">*</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>                           <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">d_0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">noise_variance</span><span class="p">)))</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>        <span class="n">denominator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">noise_variance</span><span class="p">))</span> <span class="o">*</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>                             <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">d_1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">noise_variance</span><span class="p">)))</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>        <span class="n">llr_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">numerator</span> <span class="o">/</span> <span class="n">denominator</span><span class="p">)</span> <span class="k">if</span> <span class="n">denominator</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>    <span class="k">return</span> <span class="n">llr_values</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a><span class="k">def</span> <span class="nf">approximate_llr</span><span class="p">(</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>        <span class="n">symbol</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a><span class="sd">    Approximate the Log-Likelihood Ratio (LLR) for a single bit based on the given received symbol.</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a><span class="sd">    Parameters:</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a><span class="sd">    - symbol (complex): The received complex symbol.</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>
+</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a><span class="sd">    Returns:</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a><span class="sd">    - float: The calculated LLR value for the bit.</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a>    <span class="n">d0</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation_0</span><span class="p">]</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>    <span class="n">d1</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation_1</span><span class="p">]</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a>
+</span><span id="L-77"><a href="#L-77"><span class="linenos">77</span></a>    <span class="n">llr</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">d0</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">d1</span><span class="p">))</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a>    <span class="k">return</span> <span class="n">llr</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos">79</span></a>
+</span><span id="L-80"><a href="#L-80"><span class="linenos">80</span></a>
+</span><span id="L-81"><a href="#L-81"><span class="linenos">81</span></a><span class="k">def</span> <span class="nf">approximate_soft_decision_llr</span><span class="p">(</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos">82</span></a>        <span class="n">symbols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos">83</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos">84</span></a><span class="sd">    Perform soft decision demapping using LLR for a list of received symbols.</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos">85</span></a>
+</span><span id="L-86"><a href="#L-86"><span class="linenos">86</span></a><span class="sd">    Parameters:</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos">87</span></a><span class="sd">    - symbols (List[complex]): The list of received complex symbols.</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos">88</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos">89</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos">90</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos">91</span></a>
+</span><span id="L-92"><a href="#L-92"><span class="linenos">92</span></a><span class="sd">    Returns:</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos">93</span></a><span class="sd">    - List[float]: A list of LLR values for each received symbol.</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos">94</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos">95</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">approximate_llr</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">,</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos">96</span></a>                            <span class="n">constellation_1</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">]</span>
 </span></pre></div>
 
 
@@ -246,106 +226,57 @@
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">calculate_llr</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">symbol</span><span class="p">:</span> <span class="nb">complex</span>,</span><span class="param">	<span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">]</span>,</span><span class="param">	<span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">]</span>,</span><span class="param">	<span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span></span><span class="return-annotation">) -> <span class="nb">float</span>:</span></span>
+        <span class="name">calculate_llr</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">s</span>, </span><span class="param"><span class="n">constellation</span>, </span><span class="param"><span class="n">noise_variance</span>, </span><span class="param"><span class="n">modulation_order</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="calculate_llr-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#calculate_llr"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="calculate_llr-33"><a href="#calculate_llr-33"><span class="linenos">33</span></a><span class="k">def</span> <span class="nf">calculate_llr</span><span class="p">(</span>
-</span><span id="calculate_llr-34"><a href="#calculate_llr-34"><span class="linenos">34</span></a>        <span class="n">symbol</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span id="calculate_llr-35"><a href="#calculate_llr-35"><span class="linenos">35</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="calculate_llr-36"><a href="#calculate_llr-36"><span class="linenos">36</span></a><span class="sd">    Calculate the Log-Likelihood Ratio (LLR) for a single bit based on the given received symbol.</span>
-</span><span id="calculate_llr-37"><a href="#calculate_llr-37"><span class="linenos">37</span></a>
-</span><span id="calculate_llr-38"><a href="#calculate_llr-38"><span class="linenos">38</span></a><span class="sd">    Parameters:</span>
-</span><span id="calculate_llr-39"><a href="#calculate_llr-39"><span class="linenos">39</span></a><span class="sd">    - symbol (complex): The received complex symbol.</span>
-</span><span id="calculate_llr-40"><a href="#calculate_llr-40"><span class="linenos">40</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
-</span><span id="calculate_llr-41"><a href="#calculate_llr-41"><span class="linenos">41</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
-</span><span id="calculate_llr-42"><a href="#calculate_llr-42"><span class="linenos">42</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
-</span><span id="calculate_llr-43"><a href="#calculate_llr-43"><span class="linenos">43</span></a>
-</span><span id="calculate_llr-44"><a href="#calculate_llr-44"><span class="linenos">44</span></a><span class="sd">    Returns:</span>
-</span><span id="calculate_llr-45"><a href="#calculate_llr-45"><span class="linenos">45</span></a><span class="sd">    - float: The calculated LLR value for the bit.</span>
-</span><span id="calculate_llr-46"><a href="#calculate_llr-46"><span class="linenos">46</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="calculate_llr-47"><a href="#calculate_llr-47"><span class="linenos">47</span></a>    <span class="k">def</span> <span class="nf">gaussian_probability</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
-</span><span id="calculate_llr-48"><a href="#calculate_llr-48"><span class="linenos">48</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">d</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="calculate_llr-33"><a href="#calculate_llr-33"><span class="linenos">33</span></a><span class="k">def</span> <span class="nf">calculate_llr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">constellation</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span> <span class="n">modulation_order</span><span class="p">):</span>
+</span><span id="calculate_llr-34"><a href="#calculate_llr-34"><span class="linenos">34</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="calculate_llr-35"><a href="#calculate_llr-35"><span class="linenos">35</span></a><span class="sd">    Calculate LLR for a given received symbol based on constellation and modulation order.</span>
+</span><span id="calculate_llr-36"><a href="#calculate_llr-36"><span class="linenos">36</span></a>
+</span><span id="calculate_llr-37"><a href="#calculate_llr-37"><span class="linenos">37</span></a><span class="sd">    :param s: Received symbol (complex number).</span>
+</span><span id="calculate_llr-38"><a href="#calculate_llr-38"><span class="linenos">38</span></a><span class="sd">    :param constellation: List of constellation points (complex numbers).</span>
+</span><span id="calculate_llr-39"><a href="#calculate_llr-39"><span class="linenos">39</span></a><span class="sd">    :param noise_variance: Noise variance (sigma^2).</span>
+</span><span id="calculate_llr-40"><a href="#calculate_llr-40"><span class="linenos">40</span></a><span class="sd">    :param modulation_order: Number of bits per symbol for the modulation scheme (e.g., 1 for BPSK, 2 for QPSK, 4 for QAM-16).</span>
+</span><span id="calculate_llr-41"><a href="#calculate_llr-41"><span class="linenos">41</span></a><span class="sd">    :return: LLR value for each bit.</span>
+</span><span id="calculate_llr-42"><a href="#calculate_llr-42"><span class="linenos">42</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="calculate_llr-43"><a href="#calculate_llr-43"><span class="linenos">43</span></a>    <span class="n">llr_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">modulation_order</span><span class="p">)</span>
+</span><span id="calculate_llr-44"><a href="#calculate_llr-44"><span class="linenos">44</span></a>
+</span><span id="calculate_llr-45"><a href="#calculate_llr-45"><span class="linenos">45</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">modulation_order</span><span class="p">):</span>
+</span><span id="calculate_llr-46"><a href="#calculate_llr-46"><span class="linenos">46</span></a>        <span class="c1"># Symbols for bit 0 and bit 1</span>
+</span><span id="calculate_llr-47"><a href="#calculate_llr-47"><span class="linenos">47</span></a>        <span class="n">d_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">constellation</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">modulation_order</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">modulation_order</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">)))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span>
+</span><span id="calculate_llr-48"><a href="#calculate_llr-48"><span class="linenos">48</span></a>        <span class="n">d_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">constellation</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">modulation_order</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">modulation_order</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">)))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">])</span>
 </span><span id="calculate_llr-49"><a href="#calculate_llr-49"><span class="linenos">49</span></a>
-</span><span id="calculate_llr-50"><a href="#calculate_llr-50"><span class="linenos">50</span></a>    <span class="n">p_b0</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gaussian_probability</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">d0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
-</span><span id="calculate_llr-51"><a href="#calculate_llr-51"><span class="linenos">51</span></a>               <span class="k">for</span> <span class="n">d0</span> <span class="ow">in</span> <span class="n">constellation_0</span><span class="p">)</span>
+</span><span id="calculate_llr-50"><a href="#calculate_llr-50"><span class="linenos">50</span></a>        <span class="n">numerator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">noise_variance</span><span class="p">))</span> <span class="o">*</span>
+</span><span id="calculate_llr-51"><a href="#calculate_llr-51"><span class="linenos">51</span></a>                           <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">d_0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">noise_variance</span><span class="p">)))</span>
 </span><span id="calculate_llr-52"><a href="#calculate_llr-52"><span class="linenos">52</span></a>
-</span><span id="calculate_llr-53"><a href="#calculate_llr-53"><span class="linenos">53</span></a>    <span class="n">p_b1</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gaussian_probability</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">d1</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span>
-</span><span id="calculate_llr-54"><a href="#calculate_llr-54"><span class="linenos">54</span></a>               <span class="k">for</span> <span class="n">d1</span> <span class="ow">in</span> <span class="n">constellation_1</span><span class="p">)</span>
+</span><span id="calculate_llr-53"><a href="#calculate_llr-53"><span class="linenos">53</span></a>        <span class="n">denominator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">noise_variance</span><span class="p">))</span> <span class="o">*</span>
+</span><span id="calculate_llr-54"><a href="#calculate_llr-54"><span class="linenos">54</span></a>                             <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">d_1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">noise_variance</span><span class="p">)))</span>
 </span><span id="calculate_llr-55"><a href="#calculate_llr-55"><span class="linenos">55</span></a>
-</span><span id="calculate_llr-56"><a href="#calculate_llr-56"><span class="linenos">56</span></a>    <span class="n">llr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p_b0</span> <span class="o">/</span> <span class="n">p_b1</span><span class="p">)</span>
-</span><span id="calculate_llr-57"><a href="#calculate_llr-57"><span class="linenos">57</span></a>    <span class="k">return</span> <span class="n">llr</span>
+</span><span id="calculate_llr-56"><a href="#calculate_llr-56"><span class="linenos">56</span></a>        <span class="n">llr_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">numerator</span> <span class="o">/</span> <span class="n">denominator</span><span class="p">)</span> <span class="k">if</span> <span class="n">denominator</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+</span><span id="calculate_llr-57"><a href="#calculate_llr-57"><span class="linenos">57</span></a>
+</span><span id="calculate_llr-58"><a href="#calculate_llr-58"><span class="linenos">58</span></a>    <span class="k">return</span> <span class="n">llr_values</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Calculate the Log-Likelihood Ratio (LLR) for a single bit based on the given received symbol.</p>
+            <div class="docstring"><p>Calculate LLR for a given received symbol based on constellation and modulation order.</p>
 
-<p>Parameters:</p>
-
-<ul>
-<li>symbol (complex): The received complex symbol.</li>
-<li>constellation_0 (List[complex]): The constellation points where the bit is 0.</li>
-<li>constellation_1 (List[complex]): The constellation points where the bit is 1.</li>
-<li>sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</li>
-</ul>
-
-<p>Returns:</p>
+<h6 id="parameters">Parameters</h6>
 
 <ul>
-<li>float: The calculated LLR value for the bit.</li>
-</ul>
-</div>
-
-
-                </section>
-                <section id="soft_decision_llr">
-                            <input id="soft_decision_llr-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">soft_decision_llr</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">symbols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">]</span>,</span><span class="param">	<span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">]</span>,</span><span class="param">	<span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">]</span>,</span><span class="param">	<span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span></span><span class="return-annotation">) -> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>:</span></span>
-
-                <label class="view-source-button" for="soft_decision_llr-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#soft_decision_llr"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="soft_decision_llr-60"><a href="#soft_decision_llr-60"><span class="linenos">60</span></a><span class="k">def</span> <span class="nf">soft_decision_llr</span><span class="p">(</span><span class="n">symbols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span>
-</span><span id="soft_decision_llr-61"><a href="#soft_decision_llr-61"><span class="linenos">61</span></a>                      <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-</span><span id="soft_decision_llr-62"><a href="#soft_decision_llr-62"><span class="linenos">62</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="soft_decision_llr-63"><a href="#soft_decision_llr-63"><span class="linenos">63</span></a><span class="sd">    Perform soft decision demapping using LLR for a list of received symbols.</span>
-</span><span id="soft_decision_llr-64"><a href="#soft_decision_llr-64"><span class="linenos">64</span></a>
-</span><span id="soft_decision_llr-65"><a href="#soft_decision_llr-65"><span class="linenos">65</span></a><span class="sd">    Parameters:</span>
-</span><span id="soft_decision_llr-66"><a href="#soft_decision_llr-66"><span class="linenos">66</span></a><span class="sd">    - symbols (List[complex]): The list of received complex symbols.</span>
-</span><span id="soft_decision_llr-67"><a href="#soft_decision_llr-67"><span class="linenos">67</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
-</span><span id="soft_decision_llr-68"><a href="#soft_decision_llr-68"><span class="linenos">68</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
-</span><span id="soft_decision_llr-69"><a href="#soft_decision_llr-69"><span class="linenos">69</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
-</span><span id="soft_decision_llr-70"><a href="#soft_decision_llr-70"><span class="linenos">70</span></a>
-</span><span id="soft_decision_llr-71"><a href="#soft_decision_llr-71"><span class="linenos">71</span></a><span class="sd">    Returns:</span>
-</span><span id="soft_decision_llr-72"><a href="#soft_decision_llr-72"><span class="linenos">72</span></a><span class="sd">    - List[float]: A list of LLR values for each received symbol.</span>
-</span><span id="soft_decision_llr-73"><a href="#soft_decision_llr-73"><span class="linenos">73</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="soft_decision_llr-74"><a href="#soft_decision_llr-74"><span class="linenos">74</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">calculate_llr</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">,</span>
-</span><span id="soft_decision_llr-75"><a href="#soft_decision_llr-75"><span class="linenos">75</span></a>                          <span class="n">constellation_1</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">]</span>
-</span></pre></div>
-
-
-            <div class="docstring"><p>Perform soft decision demapping using LLR for a list of received symbols.</p>
-
-<p>Parameters:</p>
-
-<ul>
-<li>symbols (List[complex]): The list of received complex symbols.</li>
-<li>constellation_0 (List[complex]): The constellation points where the bit is 0.</li>
-<li>constellation_1 (List[complex]): The constellation points where the bit is 1.</li>
-<li>sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</li>
+<li><strong>s</strong>:  Received symbol (complex number).</li>
+<li><strong>constellation</strong>:  List of constellation points (complex numbers).</li>
+<li><strong>noise_variance</strong>:  Noise variance (sigma^2).</li>
+<li><strong>modulation_order</strong>:  Number of bits per symbol for the modulation scheme (e.g., 1 for BPSK, 2 for QPSK, 4 for QAM-16).</li>
 </ul>
 
-<p>Returns:</p>
+<h6 id="returns">Returns</h6>
 
-<ul>
-<li>List[float]: A list of LLR values for each received symbol.</li>
-</ul>
+<blockquote>
+  <p>LLR value for each bit.</p>
+</blockquote>
 </div>
 
 
@@ -361,25 +292,25 @@
 
     </div>
     <a class="headerlink" href="#approximate_llr"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="approximate_llr-78"><a href="#approximate_llr-78"><span class="linenos">78</span></a><span class="k">def</span> <span class="nf">approximate_llr</span><span class="p">(</span>
-</span><span id="approximate_llr-79"><a href="#approximate_llr-79"><span class="linenos">79</span></a>        <span class="n">symbol</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-</span><span id="approximate_llr-80"><a href="#approximate_llr-80"><span class="linenos">80</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="approximate_llr-81"><a href="#approximate_llr-81"><span class="linenos">81</span></a><span class="sd">    Approximate the Log-Likelihood Ratio (LLR) for a single bit based on the given received symbol.</span>
-</span><span id="approximate_llr-82"><a href="#approximate_llr-82"><span class="linenos">82</span></a>
-</span><span id="approximate_llr-83"><a href="#approximate_llr-83"><span class="linenos">83</span></a><span class="sd">    Parameters:</span>
-</span><span id="approximate_llr-84"><a href="#approximate_llr-84"><span class="linenos">84</span></a><span class="sd">    - symbol (complex): The received complex symbol.</span>
-</span><span id="approximate_llr-85"><a href="#approximate_llr-85"><span class="linenos">85</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
-</span><span id="approximate_llr-86"><a href="#approximate_llr-86"><span class="linenos">86</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
-</span><span id="approximate_llr-87"><a href="#approximate_llr-87"><span class="linenos">87</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
-</span><span id="approximate_llr-88"><a href="#approximate_llr-88"><span class="linenos">88</span></a>
-</span><span id="approximate_llr-89"><a href="#approximate_llr-89"><span class="linenos">89</span></a><span class="sd">    Returns:</span>
-</span><span id="approximate_llr-90"><a href="#approximate_llr-90"><span class="linenos">90</span></a><span class="sd">    - float: The calculated LLR value for the bit.</span>
-</span><span id="approximate_llr-91"><a href="#approximate_llr-91"><span class="linenos">91</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="approximate_llr-92"><a href="#approximate_llr-92"><span class="linenos">92</span></a>    <span class="n">d0</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation_0</span><span class="p">]</span>
-</span><span id="approximate_llr-93"><a href="#approximate_llr-93"><span class="linenos">93</span></a>    <span class="n">d1</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation_1</span><span class="p">]</span>
-</span><span id="approximate_llr-94"><a href="#approximate_llr-94"><span class="linenos">94</span></a>
-</span><span id="approximate_llr-95"><a href="#approximate_llr-95"><span class="linenos">95</span></a>    <span class="n">llr</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">d0</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">d1</span><span class="p">))</span>
-</span><span id="approximate_llr-96"><a href="#approximate_llr-96"><span class="linenos">96</span></a>    <span class="k">return</span> <span class="n">llr</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="approximate_llr-61"><a href="#approximate_llr-61"><span class="linenos">61</span></a><span class="k">def</span> <span class="nf">approximate_llr</span><span class="p">(</span>
+</span><span id="approximate_llr-62"><a href="#approximate_llr-62"><span class="linenos">62</span></a>        <span class="n">symbol</span><span class="p">:</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="approximate_llr-63"><a href="#approximate_llr-63"><span class="linenos">63</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="approximate_llr-64"><a href="#approximate_llr-64"><span class="linenos">64</span></a><span class="sd">    Approximate the Log-Likelihood Ratio (LLR) for a single bit based on the given received symbol.</span>
+</span><span id="approximate_llr-65"><a href="#approximate_llr-65"><span class="linenos">65</span></a>
+</span><span id="approximate_llr-66"><a href="#approximate_llr-66"><span class="linenos">66</span></a><span class="sd">    Parameters:</span>
+</span><span id="approximate_llr-67"><a href="#approximate_llr-67"><span class="linenos">67</span></a><span class="sd">    - symbol (complex): The received complex symbol.</span>
+</span><span id="approximate_llr-68"><a href="#approximate_llr-68"><span class="linenos">68</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
+</span><span id="approximate_llr-69"><a href="#approximate_llr-69"><span class="linenos">69</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
+</span><span id="approximate_llr-70"><a href="#approximate_llr-70"><span class="linenos">70</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
+</span><span id="approximate_llr-71"><a href="#approximate_llr-71"><span class="linenos">71</span></a>
+</span><span id="approximate_llr-72"><a href="#approximate_llr-72"><span class="linenos">72</span></a><span class="sd">    Returns:</span>
+</span><span id="approximate_llr-73"><a href="#approximate_llr-73"><span class="linenos">73</span></a><span class="sd">    - float: The calculated LLR value for the bit.</span>
+</span><span id="approximate_llr-74"><a href="#approximate_llr-74"><span class="linenos">74</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="approximate_llr-75"><a href="#approximate_llr-75"><span class="linenos">75</span></a>    <span class="n">d0</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation_0</span><span class="p">]</span>
+</span><span id="approximate_llr-76"><a href="#approximate_llr-76"><span class="linenos">76</span></a>    <span class="n">d1</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">abs</span><span class="p">(</span><span class="n">symbol</span> <span class="o">-</span> <span class="n">point</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">constellation_1</span><span class="p">]</span>
+</span><span id="approximate_llr-77"><a href="#approximate_llr-77"><span class="linenos">77</span></a>
+</span><span id="approximate_llr-78"><a href="#approximate_llr-78"><span class="linenos">78</span></a>    <span class="n">llr</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">d0</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">d1</span><span class="p">))</span>
+</span><span id="approximate_llr-79"><a href="#approximate_llr-79"><span class="linenos">79</span></a>    <span class="k">return</span> <span class="n">llr</span>
 </span></pre></div>
 
 
@@ -414,22 +345,22 @@
 
     </div>
     <a class="headerlink" href="#approximate_soft_decision_llr"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="approximate_soft_decision_llr-99"><a href="#approximate_soft_decision_llr-99"><span class="linenos"> 99</span></a><span class="k">def</span> <span class="nf">approximate_soft_decision_llr</span><span class="p">(</span>
-</span><span id="approximate_soft_decision_llr-100"><a href="#approximate_soft_decision_llr-100"><span class="linenos">100</span></a>        <span class="n">symbols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-</span><span id="approximate_soft_decision_llr-101"><a href="#approximate_soft_decision_llr-101"><span class="linenos">101</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="approximate_soft_decision_llr-102"><a href="#approximate_soft_decision_llr-102"><span class="linenos">102</span></a><span class="sd">    Perform soft decision demapping using LLR for a list of received symbols.</span>
-</span><span id="approximate_soft_decision_llr-103"><a href="#approximate_soft_decision_llr-103"><span class="linenos">103</span></a>
-</span><span id="approximate_soft_decision_llr-104"><a href="#approximate_soft_decision_llr-104"><span class="linenos">104</span></a><span class="sd">    Parameters:</span>
-</span><span id="approximate_soft_decision_llr-105"><a href="#approximate_soft_decision_llr-105"><span class="linenos">105</span></a><span class="sd">    - symbols (List[complex]): The list of received complex symbols.</span>
-</span><span id="approximate_soft_decision_llr-106"><a href="#approximate_soft_decision_llr-106"><span class="linenos">106</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
-</span><span id="approximate_soft_decision_llr-107"><a href="#approximate_soft_decision_llr-107"><span class="linenos">107</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
-</span><span id="approximate_soft_decision_llr-108"><a href="#approximate_soft_decision_llr-108"><span class="linenos">108</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
-</span><span id="approximate_soft_decision_llr-109"><a href="#approximate_soft_decision_llr-109"><span class="linenos">109</span></a>
-</span><span id="approximate_soft_decision_llr-110"><a href="#approximate_soft_decision_llr-110"><span class="linenos">110</span></a><span class="sd">    Returns:</span>
-</span><span id="approximate_soft_decision_llr-111"><a href="#approximate_soft_decision_llr-111"><span class="linenos">111</span></a><span class="sd">    - List[float]: A list of LLR values for each received symbol.</span>
-</span><span id="approximate_soft_decision_llr-112"><a href="#approximate_soft_decision_llr-112"><span class="linenos">112</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="approximate_soft_decision_llr-113"><a href="#approximate_soft_decision_llr-113"><span class="linenos">113</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">approximate_llr</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">,</span>
-</span><span id="approximate_soft_decision_llr-114"><a href="#approximate_soft_decision_llr-114"><span class="linenos">114</span></a>                            <span class="n">constellation_1</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="approximate_soft_decision_llr-82"><a href="#approximate_soft_decision_llr-82"><span class="linenos">82</span></a><span class="k">def</span> <span class="nf">approximate_soft_decision_llr</span><span class="p">(</span>
+</span><span id="approximate_soft_decision_llr-83"><a href="#approximate_soft_decision_llr-83"><span class="linenos">83</span></a>        <span class="n">symbols</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_0</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">constellation_1</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">],</span> <span class="n">sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="approximate_soft_decision_llr-84"><a href="#approximate_soft_decision_llr-84"><span class="linenos">84</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="approximate_soft_decision_llr-85"><a href="#approximate_soft_decision_llr-85"><span class="linenos">85</span></a><span class="sd">    Perform soft decision demapping using LLR for a list of received symbols.</span>
+</span><span id="approximate_soft_decision_llr-86"><a href="#approximate_soft_decision_llr-86"><span class="linenos">86</span></a>
+</span><span id="approximate_soft_decision_llr-87"><a href="#approximate_soft_decision_llr-87"><span class="linenos">87</span></a><span class="sd">    Parameters:</span>
+</span><span id="approximate_soft_decision_llr-88"><a href="#approximate_soft_decision_llr-88"><span class="linenos">88</span></a><span class="sd">    - symbols (List[complex]): The list of received complex symbols.</span>
+</span><span id="approximate_soft_decision_llr-89"><a href="#approximate_soft_decision_llr-89"><span class="linenos">89</span></a><span class="sd">    - constellation_0 (List[complex]): The constellation points where the bit is 0.</span>
+</span><span id="approximate_soft_decision_llr-90"><a href="#approximate_soft_decision_llr-90"><span class="linenos">90</span></a><span class="sd">    - constellation_1 (List[complex]): The constellation points where the bit is 1.</span>
+</span><span id="approximate_soft_decision_llr-91"><a href="#approximate_soft_decision_llr-91"><span class="linenos">91</span></a><span class="sd">    - sigma (float): The standard deviation of the noise (sigma^2 is the noise variance).</span>
+</span><span id="approximate_soft_decision_llr-92"><a href="#approximate_soft_decision_llr-92"><span class="linenos">92</span></a>
+</span><span id="approximate_soft_decision_llr-93"><a href="#approximate_soft_decision_llr-93"><span class="linenos">93</span></a><span class="sd">    Returns:</span>
+</span><span id="approximate_soft_decision_llr-94"><a href="#approximate_soft_decision_llr-94"><span class="linenos">94</span></a><span class="sd">    - List[float]: A list of LLR values for each received symbol.</span>
+</span><span id="approximate_soft_decision_llr-95"><a href="#approximate_soft_decision_llr-95"><span class="linenos">95</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="approximate_soft_decision_llr-96"><a href="#approximate_soft_decision_llr-96"><span class="linenos">96</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">approximate_llr</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">constellation_0</span><span class="p">,</span>
+</span><span id="approximate_soft_decision_llr-97"><a href="#approximate_soft_decision_llr-97"><span class="linenos">97</span></a>                            <span class="n">constellation_1</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">]</span>
 </span></pre></div>
 
 
