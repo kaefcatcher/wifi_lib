@@ -13,13 +13,12 @@ def bcc_encoder(data: List[int], code_rate: str = "1/2") -> List[int]:
     Returns:
     - List[int]: The encoded bits after applying the puncturing pattern.
     """
-    # Polynomials for BCC encoding based on IEEE 802.11n
+
     g1 = 0b1111001
     g0 = 0b1011011
     shift_register = [0] * 7
     raw_encoded_bits = []
 
-    # Define puncturing patterns for each code rate
     puncturing_patterns = {
         "1/2": [1, 1],
         "2/3": [1, 1, 1, 0],
@@ -29,7 +28,6 @@ def bcc_encoder(data: List[int], code_rate: str = "1/2") -> List[int]:
     pattern = puncturing_patterns.get(code_rate, [1, 1])
     pattern_len = len(pattern)
 
-    # Generate raw encoded bits without puncturing
     for bit in data:
         shift_register = [bit] + shift_register[:-1]
 
@@ -40,7 +38,6 @@ def bcc_encoder(data: List[int], code_rate: str = "1/2") -> List[int]:
 
         raw_encoded_bits.extend([encoded_bit_0, encoded_bit_1])
 
-    # Apply puncturing to the encoded bits
     encoded_bits = [bit for i, bit in enumerate(
         raw_encoded_bits) if pattern[i % pattern_len] == 1]
 
