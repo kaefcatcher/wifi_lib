@@ -20,7 +20,7 @@ def scrambler(seed: int, data_bits: List[int]) -> List[int]:
 
     for bit in data_bits:
         new_bit = lfsr[3] ^ lfsr[6]
-        scrambled_bit = bit ^ new_bit
+        scrambled_bit = int(bit) ^ new_bit
         scrambled_bits.append(scrambled_bit)
         lfsr = [new_bit] + lfsr[:-1]
 
@@ -47,7 +47,7 @@ def descrambler(seed: int, scrambled_bits: List[int]) -> List[int]:
 
     for bit in scrambled_bits:
         new_bit = lfsr[3] ^ lfsr[6]
-        descrambled_bit = bit ^ new_bit
+        descrambled_bit = int(bit) ^ new_bit
         descrambled_bits.append(descrambled_bit)
         lfsr = [new_bit] + lfsr[:-1]
 
