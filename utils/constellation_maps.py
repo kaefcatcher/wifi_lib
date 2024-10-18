@@ -33,7 +33,6 @@ QAM16_CONSTELLATION = [
 
 # 64-QAM Constellation
 
-
 def generate_64qam_constellation():
     constellation = []
     for i in range(8):
