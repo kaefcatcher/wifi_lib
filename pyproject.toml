@@ -15,8 +15,9 @@ viterbi = "^0.0.4"
 sphinx = "^8.1.3"
 sphinxcontrib-napoleon = "^0.7"
 doxypypy = "^0.8.8.7"
+jupyterlab = "^4.2.5"
+matplotlib = "^3.9.2"
 scipy = "^1.14.1"
-
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1"

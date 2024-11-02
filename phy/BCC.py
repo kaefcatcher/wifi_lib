@@ -1,116 +1,144 @@
-from typing import List
 import numpy as np
 
+class ViterbiCodec:
+    def __init__(self, constraint, polynomials, puncpat="1"):
+        self.constraint = constraint
+        self.polynomials = polynomials
+        self.puncpat = puncpat
+        self.outputs = []
+        self.initialize_outputs()
 
-class BCC:
-    def __init__(self):
-        self.g1 = 0b1111001
-        self.g0 = 0b1011011
-        self.puncturing_patterns = {
-            "1/2": [1, 1],
-            "2/3": [1, 1, 1, 0],
-            "3/4": [1, 1, 1, 0, 0, 1],
-            "5/6": [1, 1, 1, 0, 0, 1, 1, 0, 1, 0]
-        }
+    def num_parity_bits(self):
+        return len(self.polynomials)
 
-    def encoder(self, data: List[int], code_rate: str = "1/2") -> List[int]:
-        """
-        Perform BCC encoding based on the IEEE 802.11n standard.
+    def next_state(self, current_state, input_bit):
+        return (current_state >> 1) | (input_bit << (self.constraint - 2))
 
-        Parameters:
-        - data (List[int]): The data bits to be encoded.
-        - code_rate (str): The coding rate. Supported values: "1/2", "2/3", "3/4", "5/6".
+    def output(self, current_state, input_bit):
+        return self.outputs[current_state | (input_bit << (self.constraint - 1))]
 
-        Returns:
-        - List[int]: The encoded bits after applying the puncturing pattern.
-        """
+    def encode(self, bits):
+        encoded = ""
+        state = 0
 
-        shift_register = [0] * 7
-        raw_encoded_bits = []
+        # Encode the message bits
+        for c in bits:
+            assert c in '01'
+            input_bit = int(c)
+            encoded += self.output(state, input_bit)
+            state = self.next_state(state, input_bit)
 
-        pattern = self.puncturing_patterns.get(code_rate, [1, 1])
-        pattern_len = len(pattern)
+        if self.puncpat:
+            return self.puncturing(encoded)
 
-        for bit in data:
-            shift_register = [bit] + shift_register[:-1]
+        return encoded
 
-            encoded_bit_0 = sum([shift_register[i]
-                                for i in range(7) if (self.g0 >> i) & 1]) % 2
-            encoded_bit_1 = sum([shift_register[i]
-                                for i in range(7) if (self.g1 >> i) & 1]) % 2
+    def initialize_outputs(self):
+        self.outputs = [""] * (1 << self.constraint)
+        for i in range(len(self.outputs)):
+            for polynomial in self.polynomials:
+                output = 0
+                polynomial = self.reverse_bits(self.constraint, polynomial)
+                input_bits = i
+                for _ in range(self.constraint):
+                    output ^= (input_bits & 1) & (polynomial & 1)
+                    polynomial >>= 1
+                    input_bits >>= 1
+                self.outputs[i] += "1" if output else "0"
 
-            raw_encoded_bits.extend([encoded_bit_0, encoded_bit_1])
-
-        encoded_bits = [bit for i, bit in enumerate(
-            raw_encoded_bits) if pattern[i % pattern_len] == 1]
-
-        return encoded_bits
-
-    def decoder(self, encoded_data: List[int], original_data_len: int,
-                code_rate: str = "1/2", constraint_len: int = 7) -> List[int]:
-        """"
-        BCC decoder (Viterbi Algorithm) according to 802.11n.
-
-        Parameters:
-        - encoded_data (List[int]): initial encoded data bits.
-        - original_data_len: original data bits length.
-        - code_rate (str): code_rate at which encoded_bits should be evaluated.
-        - constraint_len: number of shift registers in the scheme (7 by default)
-
-        Returns:
-        - decoded_data (List[int]): decoded data of original data length.
-        """
-
-        n_states = 2 ** (constraint_len - 1)
-        inf = float('inf')
-
-        pattern = self.puncturing_patterns.get(code_rate, [1, 1])
-        pattern_len = len(pattern)
-
-        path_metrics = [inf] * n_states
-        path_metrics[0] = 0
-        backtrack = [{} for _ in range(len(encoded_data) // 2)]
-
-        pattern_index = 0
-
-        for i in range(0, len(encoded_data), 2):
-            if pattern[pattern_index % pattern_len] == 0:
-
-                pattern_index += 2
+    def hamming_distance(self, x, y):
+        assert len(x) == len(y)
+        distance = 0
+        for i in range (len(x)):
+            if (x[i] == '-' or y[i] == '-'):
                 continue
+            distance += x[i]!=y[i]
+        return distance
 
-            new_metrics = [inf] * n_states
-            current_index = i // 2
+    def branch_metric(self, bits, source_state, target_state):
+        assert len(bits) == self.num_parity_bits()
+        output = self.output(source_state, target_state >> (self.constraint - 2))
+        return self.hamming_distance(bits, output)
 
-            for state in range(n_states):
-                if path_metrics[state] < inf:
-                    for bit in [0, 1]:
-                        next_state = ((state << 1) | bit) & 0b111111
-                        out_bit_0 = sum(
-                            [((state << 1) | bit) >> j & 1 for j in range(7) if (self.g0 >> j) & 1]) % 2
-                        out_bit_1 = sum(
-                            [((state << 1) | bit) >> j & 1 for j in range(7) if (self.g1 >> j) & 1]) % 2
+    def path_metric(self, bits, prev_path_metrics, state):
+        s = (state & ((1 << (self.constraint - 2)) - 1)) << 1
+        source_state1, source_state2 = s | 0, s | 1
 
-                        branch_metric = (
-                            encoded_data[i] != out_bit_0) + (encoded_data[i + 1] != out_bit_1)
-                        metric = path_metrics[state] + branch_metric
+        pm1 = prev_path_metrics[source_state1]
+        if pm1 < float('inf'):
+            pm1 += self.branch_metric(bits, source_state1, state)
 
-                        if metric < new_metrics[next_state]:
-                            new_metrics[next_state] = metric
-                            backtrack[current_index][next_state] = (state, bit)
+        pm2 = prev_path_metrics[source_state2]
+        if pm2 < float('inf'):
+            pm2 += self.branch_metric(bits, source_state2, state)
 
-            path_metrics = new_metrics
-            pattern_index += 2
+        if pm1 <= pm2:
+            return pm1, source_state1
+        else:
+            return pm2, source_state2
 
-        last_state = np.argmin(path_metrics)
-        decoded_data = []
+    def update_path_metrics(self, bits, path_metrics, trellis):
+        new_path_metrics = [float('inf')] * len(path_metrics)
+        new_trellis_column = [0] * len(path_metrics)
+        for i in range(len(path_metrics)):
+            pm, source_state = self.path_metric(bits, path_metrics, i)
+            new_path_metrics[i] = pm
+            new_trellis_column[i] = source_state
+        path_metrics[:] = new_path_metrics
+        trellis.append(new_trellis_column)
+        return path_metrics,trellis
 
-        for i in range(len(encoded_data) // 2 - 1, -1, -1):
-            if last_state in backtrack[i]:
-                prev_state, bit = backtrack[i][last_state]
-                decoded_data.insert(0, bit)
-                last_state = prev_state
-            else:
-                decoded_data.insert(0, 0)
+    def decode(self, bits):
+        depunctured = self.depuncturing(bits) + "0" * self.num_parity_bits() * (self.constraint - 1)
+        trellis = []
+        path_metrics = [float('inf')] * (1 << (self.constraint - 1))
+        path_metrics[0] = 0
 
-        return decoded_data[:original_data_len]
+        for i in range(0, len(depunctured), self.num_parity_bits()):
+            current_bits = depunctured[i:i + self.num_parity_bits()]
+            if (len(current_bits)<self.num_parity_bits()):
+                current_bits.ljust(self.num_parity_bits()-len(current_bits), '0')
+            path_metrics,trellis = self.update_path_metrics(current_bits, path_metrics, trellis)
+
+        decoded = ""
+        state = int(np.argmin(path_metrics))
+        for i in range(len(trellis)-1,-1,-1):
+            decoded+= '1' if state>>(self.constraint -2) else '0'
+            state = trellis[i][state]
+        decoded = decoded[::-1]
+
+        return decoded[:len(decoded)-self.constraint+1]
+
+    def puncturing(self, bits):
+        punctured = ""
+        index = 0
+        for bit in bits:
+            if self.puncpat[index] == '1':
+                punctured += bit
+            index = (index + 1) % len(self.puncpat)
+        return punctured
+
+    def depuncturing(self, bits):
+        depunctured = ""
+        index = 0
+        i=0
+        while index<len(bits):
+            for j in range (len(self.puncpat)):
+                if self.puncpat[j]=='1':
+                    if index>=len(bits):
+                        depunctured+='0'
+                    else:
+                        depunctured+=bits[index]
+                        index+=1
+                else:
+                    depunctured+='-'
+            i+=len(self.puncpat)
+        return depunctured
+
+    @staticmethod
+    def reverse_bits(num_bits: int, input_bits: int):
+        output = 0
+        for _ in range(num_bits):
+            output = (output << 1) | (input_bits & 1)
+            input_bits >>= 1
+        return output

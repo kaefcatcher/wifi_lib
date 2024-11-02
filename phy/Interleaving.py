@@ -4,7 +4,7 @@ import numpy as np
 
 class Interleaving:
     @staticmethod
-    def interleaver(data: List[Union[int, complex]], N_bpcs: int) -> List[Union[int, complex]]:
+    def interleaver(data: List[int], N_bpcs: int) -> List[int]:
         """
         Interleaver function based on 802.11n.
 
@@ -17,7 +17,7 @@ class Interleaving:
         """
         N_cbps = len(data)
         num_columns = N_cbps // N_bpcs
-        interleaved_data: List[Union[int, complex]] = [0] * N_cbps
+        interleaved_data: List[int] = [0] * N_cbps
 
         for k in range(N_cbps):
             row = k % num_columns
@@ -29,7 +29,7 @@ class Interleaving:
         return interleaved_data
 
     @staticmethod
-    def deinterleaver(interleaved_data: List[Union[int, complex]], N_bpcs: int) -> List[Union[int, complex]]:
+    def deinterleaver(interleaved_data: List[int], N_bpcs: int) -> List[int]:
         """
         Deinterleaver function based on 802.11n.
 
@@ -42,7 +42,7 @@ class Interleaving:
         """
         N_cbps = len(interleaved_data)
         num_columns = N_cbps // N_bpcs
-        deinterleaved_data: List[Union[int, complex]] = [0] * N_cbps
+        deinterleaved_data: List[int] = [0] * N_cbps
 
         for k in range(N_cbps):
             row = k % N_bpcs

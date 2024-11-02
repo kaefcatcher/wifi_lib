@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import numpy as np
 import plotly.express as px
 import pandas as pd
@@ -13,7 +13,7 @@ from utils.constellation_maps import (
 
 class Mapping:
     @staticmethod
-    def bpsk(bits: List[int], constellation: bool = True) -> List[complex]:
+    def bpsk(bits: Union[List[int], List[complex]], constellation: bool = True) -> List[complex]:
         """
         Perform BPSK (Binary Phase Shift Keying) modulation on input bits.
 
