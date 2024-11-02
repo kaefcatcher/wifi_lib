@@ -3,91 +3,94 @@ import numpy as np
 import unittest
 from utils.LDPC_matrix import LDPCMatrixGenerator
 
-def rref(A: np.ndarray) -> np.ndarray:
-    """Compute the Reduced Row Echelon Form (RREF) of a matrix."""
-    A = A.copy().astype(float)
-    rows, cols = A.shape
-    pivot_row = 0
+class LDPC:
+    def __init__(self, ldpc_matrix: np.ndarray):
+        self.ldpc_matrix = ldpc_matrix
+        self.generator_matrix = self._create_generator_matrix()
 
-    for pivot_col in range(cols):
-        if pivot_row >= rows:
-            break
+    @staticmethod
+    def rref(A: np.ndarray) -> np.ndarray:
+        """Compute the Reduced Row Echelon Form (RREF) of a matrix."""
+        A = A.copy().astype(float)
+        rows, cols = A.shape
+        pivot_row = 0
 
-        max_row = np.argmax(np.abs(A[pivot_row:rows, pivot_col])) + pivot_row
-        if A[max_row, pivot_col] == 0:
-            continue
+        for pivot_col in range(cols):
+            if pivot_row >= rows:
+                break
 
-        A[[pivot_row, max_row]] = A[[max_row, pivot_row]]
+            max_row = np.argmax(np.abs(A[pivot_row:rows, pivot_col])) + pivot_row
+            if A[max_row, pivot_col] == 0:
+                continue
 
-        A[pivot_row] = A[pivot_row] / A[pivot_row, pivot_col]
+            A[[pivot_row, max_row]] = A[[max_row, pivot_row]]
 
-        for r in range(rows):
-            if r != pivot_row:
-                A[r] -= A[r, pivot_col] * A[pivot_row]
+            A[pivot_row] = A[pivot_row] / A[pivot_row, pivot_col]
 
-        pivot_row += 1
+            for r in range(rows):
+                if r != pivot_row:
+                    A[r] -= A[r, pivot_col] * A[pivot_row]
 
-    return A
+            pivot_row += 1
 
-def create_generator_matrix(ldpc_matrix: np.ndarray) -> np.ndarray:
-    """Create a generator matrix based on the LDPC matrix."""
-    m, n = ldpc_matrix.shape
-    k = n - m
+        return A
 
-    H_rref = rref(ldpc_matrix)
+    def _create_generator_matrix(self) -> np.ndarray:
+        """Create a generator matrix based on the LDPC matrix."""
+        m, n = self.ldpc_matrix.shape
+        k = n - m
 
-    P = H_rref[:, :k]
+        H_rref = self.rref(self.ldpc_matrix)
 
-    I_k = np.eye(k, dtype=int)
-    G = np.hstack((I_k, P.T))
+        P = H_rref[:, :k]
 
-    return np.array(G)
+        I_k = np.eye(k, dtype=int)
+        G = np.hstack((I_k, P.T))
 
-def encode_with_ldpc(generator_matrix, input_data)->List[int]:
-    """Encode the input data using the LDPC generator matrix."""
-    k, n = generator_matrix.shape
-    m = n - k
+        return np.array(G)
 
-    if len(input_data) % k != 0:
-        padding = k - (len(input_data) % k)
-        input_data = np.pad(input_data, (0, padding), 'constant')
+    def encode(self, input_data: np.ndarray) -> List[int]:
+        """Encode the input data using the LDPC generator matrix."""
+        k, n = self.generator_matrix.shape
+        m = n - k
 
-    data_blocks = input_data.reshape(-1, k)
-    encoded_blocks = []
+        if len(input_data) % k != 0:
+            padding = k - (len(input_data) % k)
+            input_data = np.pad(input_data, (0, padding), 'constant')
 
-    for block in data_blocks:
-        parity_bits = np.zeros(m, dtype=int)
-        for row in generator_matrix:
-            info_part = row[:k]
-            parity_part = row[k:]
-            xor_result = np.bitwise_xor.reduce(block[info_part == 1], initial=0)
-            parity_bits = np.bitwise_xor(parity_bits, parity_part.astype(int) * xor_result)
+        data_blocks = input_data.reshape(-1, k)
+        encoded_blocks = []
 
-        encoded_block = np.concatenate((block, parity_bits))
-        encoded_blocks.append(encoded_block)
+        for block in data_blocks:
+            parity_bits = np.zeros(m, dtype=int)
+            for row in self.generator_matrix:
+                info_part = row[:k]
+                parity_part = row[k:]
+                xor_result = np.bitwise_xor.reduce(block[info_part == 1], initial=0)
+                parity_bits = np.bitwise_xor(parity_bits, parity_part.astype(int) * xor_result)
 
-    encoded_codeword = np.concatenate(encoded_blocks)
-    return encoded_codeword.tolist()
+            encoded_block = np.concatenate((block, parity_bits))
+            encoded_blocks.append(encoded_block)
 
-def recover_information_bits(decoded_codeword, k, n)->List[int]:
-    """
-    Recover the information bits from the decoded codeword.
+        encoded_codeword = np.concatenate(encoded_blocks)
+        return encoded_codeword.tolist()
 
-    Parameters:
-    decoded_codeword : numpy array
-        The decoded codeword from the SPA decoder
-    k : int
-        Number of information bits per block
-    n : int
-        Total number of bits per codeword block (information + parity)
+    def recover_information_bits(self, decoded_codeword: np.ndarray) -> List[int]:
+        """
+        Recover the information bits from the decoded codeword.
 
-    Returns:
-    numpy array : The recovered information bits
-    """
+        Parameters:
+        decoded_codeword : numpy array
+            The decoded codeword from the SPA decoder
 
-    num_blocks = len(decoded_codeword) // n
-    reshaped_codeword = decoded_codeword.reshape(num_blocks, n)
+        Returns:
+        numpy array : The recovered information bits
+        """
+        k, n = self.generator_matrix.shape
 
-    information_bits = reshaped_codeword[:, :k].flatten()
+        num_blocks = len(decoded_codeword) // n
+        reshaped_codeword = decoded_codeword.reshape(num_blocks, n)
 
-    return information_bits.tolist()
+        information_bits = reshaped_codeword[:, :k].flatten()
+
+        return information_bits.tolist()
